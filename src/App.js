@@ -18,7 +18,7 @@ function App() {
       ${transferFlow}
       `,
       fcl.args([
-        fcl.arg("1.0", fcl.t.UInt64), // amount
+        fcl.arg("1.0", fcl.t.UFix64), // amount
         fcl.arg("0x31667ab314cabec0", fcl.t.Address), // to
       ]),
       fcl.proposer(fcl.authz),
