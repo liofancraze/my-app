@@ -13,30 +13,37 @@ function App() {
   useEffect(() => fcl.currentUser.subscribe(setUser), []);
 
   const sendTxn = async () => {
-    let voucher = await fcl.serialize([
-      fcl.transaction`
+    const txId = await fcl
+      .send([
+        fcl.transaction`
       ${transferFlow}
       `,
-      fcl.args([
-        fcl.arg("1.0", fcl.t.UFix64), // amount
-        fcl.arg("0x31667ab314cabec0", fcl.t.Address), // to
-      ]),
-      fcl.proposer(fcl.authz),
-      fcl.payer(fcl.authz),
-      fcl.authorizations([fcl.authz]),
-      fcl.limit(9999),
-    ]);
+        fcl.args([
+          fcl.arg("1.0", fcl.t.UFix64), // amount
+          fcl.arg("0x31667ab314cabec0", fcl.t.Address), // to
+        ]),
+        fcl.proposer(fcl.authz),
+        fcl.payer(fcl.authz),
+        fcl.authorizations([fcl.authz]),
+        fcl.limit(9999),
+        fcl.voucherIntercept(async (voucher) => {
+          const txId = fcl.voucherToTxId(voucher);
 
-    console.log("-----------voucherString", voucher);
-    voucher = JSON.parse(voucher);
-    console.log("-----------voucherObject", voucher);
+          let response = await axios.post(
+            "http://localhost:8000/relayVoucher",
+            { txId }
+          );
+          console.log("------------response", response);
+        }),
+      ])
+      .then(fcl.decode);
 
-    let response = await axios.post(
-      "http://localhost:8000/relayVoucher",
-      voucher
-    );
+    console.log("-----------txId", txId);
 
-    console.log("------------response", response);
+    // let response = await axios.post(
+    //   "http://localhost:8000/relayVoucher",
+    //   voucher
+    // );
   };
 
   return (
